@@ -1,14 +1,13 @@
 import torch
 import torch.distributions as dist
-import genbmm
 
 
-class HMM_bayes(torch.nn.Module):
+class HMMPoisson(torch.nn.Module):
     """
     Hidden Markov Model with discrete observations.
     """
     def __init__(self, n_states, m_dimensions, max_itterations = 100, tolerance = 0.1, verbose = True):
-        super(HMM_bayes, self).__init__()
+        super(HMMPoisson, self).__init__()
         self.n_states = n_states  # number of states
         self.T_max = None # Max time step
         self.m_dimensions = m_dimensions
@@ -39,7 +38,7 @@ class HMM_bayes(torch.nn.Module):
             self.cuda()
 
     def emission_model(self, x, log = True):
-        """
+        """Calculate log-probability of each observation for each state
         x: LongTensor of shape (T_max, m_dimensions)
 
         Get observation log probabilities
@@ -54,32 +53,6 @@ class HMM_bayes(torch.nn.Module):
         
         return log_probabilities.exp()
         
-    
-    def alpha_calc(self):
-        alpha = torch.zeros(self.T_max, self.n_states).float()
-        if self.is_cuda:
-            alpha = alpha.cuda()
-        
-        alpha[0,:] = self.emission_matrix[0,:] + self.log_state_priors
-        
-        for t in range(1, self.T_max):
-            alpha[t, :] = self.emission_matrix[t, :] * torch.matmul(self.transition_matrix, alpha[t-1, :])
-        
-        return alpha
-    
-    def beta_calc(self):
-        beta = torch.ones(self.T_max, self.n_states).float()
-        if self.is_cuda:
-            beta = beta.cuda()
-        
-        for t in range(self.T_max - 2, -1, -1):
-            beta_t_s = torch.zeros(self.n_states).float()
-            for s in range(self.n_states):
-                for k in range(self.n_states):
-                    beta_t_s[s] += beta[t+1,k]*self.transition_matrix[s,k]*self.emission_matrix[t+1,k]
-            beta[t,:] = beta_t_s
-        
-        return beta
                     
     def log_alpha_calc(self):
         """
@@ -124,7 +97,7 @@ class HMM_bayes(torch.nn.Module):
         
     
     def forward(self, x):
-        """
+        """ Calculate log-likelihood
         x: IntTensor of shape (T_max, m_dimensions)
 
         Compute log p(x)
@@ -141,7 +114,7 @@ class HMM_bayes(torch.nn.Module):
             
     
     def fit(self, x):
-        """ Estimates optimal transition matrix and lambdas given the data x.
+        """ Estimates optimal transition matrix and lambdas given the data x. Baun-Welch Algorithm
 
         Args:
             x (torch): T_max x m_dimensions
@@ -202,8 +175,6 @@ class HMM_bayes(torch.nn.Module):
             self.log_transition_matrix = trans_numerator - trans_denominator.view(-1, 1)
             
             ## Update lambda
-            # log_numerator = genbmm.logbmm(log_gamma.t().unsqueeze(0).contiguous(), log_x.unsqueeze(1).contiguous())[0]
-            # log_numerator = log_matrix_multiply(log_alpha.t(), log_x)
             lambda_numerator = log_domain_matmul(log_gamma.t(), log_x, dim_1=False)
             lambda_denominator = log_gamma.logsumexp(dim = 0)
             
