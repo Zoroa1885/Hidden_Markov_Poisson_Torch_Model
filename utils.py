@@ -12,6 +12,8 @@ from matplotlib.lines import Line2D
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 
+import colorcet as cc
+
 
 import networkx as nx
 
@@ -305,8 +307,8 @@ def plot_polar_scatter(y_head, states_head, path=''):
     n_states = len(set(states))
     angle_data = y_head
     t_end = len(states)
-    palette = sns.color_palette("husl", n_states)
-    legend_labels = [f"State {i+1}" for i in range(n_states)]
+    palette = sns.color_palette(cc.glasbey, n_states)
+    legend_labels = [f"State {i + 1}" for i in range(n_states)]
 
     # Create a time vector
     t = np.arange(1, t_end + 1) / t_end + 0.05
@@ -314,7 +316,7 @@ def plot_polar_scatter(y_head, states_head, path=''):
     # Create a polar scatter plot
     plt.figure(figsize=(7, 6))
     ax = plt.subplot(111, polar=True)
-    sc = ax.scatter(y_head, t, c=[palette[x] for x in states], s=20, alpha=1)
+    scatter = ax.scatter(y_head, t, c=[palette[x] for x in states], s=20, alpha=1)
 
     # Remove axis labels and ticks
     ax.set_xticklabels([])
@@ -324,25 +326,23 @@ def plot_polar_scatter(y_head, states_head, path=''):
     ax.set_xlabel(" ")
     ax.set_ylabel(" ")
 
-    # Create a custom legend outside the polar plot
-    legend_labels = [f"State {i+1}" for i in range(n_states)]
-    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', label=label,
-                                  markersize=10, markerfacecolor='C{}'.format(i))
-                      for i, label in enumerate(legend_labels)]
+    # Create legend handles with the specified colors
+    legend_handles = [Patch(color=palette[i]) for i in range(n_states)]
 
-    # Adjust the legend position using bbox_to_anchor
-    plt.legend(handles=legend_handles, loc='upper right', title="States", bbox_to_anchor=(1.2, 1))
+    # Create the legend
+    plt.legend(handles=legend_handles, labels=legend_labels, loc='upper right', title="States", bbox_to_anchor=(1.2, 1))
 
     plt.title("Polar Scatter Plot")
 
-    # Save plot
+    # Optionally, save the plot to a file
     if path:
-        file_path = f'models/{path}/polar.png'
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        plt.savefig(file_path, dpi=300, bbox_inches='tight')  # Example: PNG format with 300 DPI
+        plt.savefig(path, bbox_inches='tight')
 
-    # Plot
+    # Show the plot
     plt.show()
+
+# Example usage:
+# plot_polar_scatter(y_head, states_head, path='polar_scatter.png')
 
 
 def upper_triangular_values(matrix):
