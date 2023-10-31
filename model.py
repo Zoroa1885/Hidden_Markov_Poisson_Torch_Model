@@ -6,7 +6,7 @@ class HMMPoisson(torch.nn.Module):
     """
     Hidden Markov Model with discrete observations.
     """
-    def __init__(self, n_states, m_dimensions, max_itterations = 100, tolerance = 0.1, verbose = True):
+    def __init__(self, n_states, m_dimensions, max_itterations = 100, tolerance = 0.1, verbose = True, use_cuda = True):
         super(HMMPoisson, self).__init__()
         self.n_states = n_states  # number of states
         self.T_max = None # Max time step
@@ -33,7 +33,7 @@ class HMMPoisson(torch.nn.Module):
         
 
         # use the GPU
-        self.is_cuda = torch.cuda.is_available()
+        self.is_cuda = (torch.cuda.is_available() and use_cuda)
         if self.is_cuda:
             self.cuda()
 
