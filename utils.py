@@ -48,7 +48,7 @@ def simulate_head(num_neuron, back_firing, peak_firing, tuning_width, data_lengt
     # Rename the columns using the mapping
     df_head.rename(columns=column_mapping, inplace=True)
         
-    return df_head, hd_sim, rf_hd
+    return df_head, hd_sim
 
 def simulate_state(num_neuron, num_states, frequency, data_length):
     
@@ -73,7 +73,8 @@ def simulate_state(num_neuron, num_states, frequency, data_length):
     # Rename the columns using the mapping
     df_states.rename(columns=column_mapping, inplace=True)
 
-    return df_states, state_sim, state_tuned
+    return df_states, state_sim
+    
 
 
 def compute_absolute_correlation(df, target_column):
