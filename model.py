@@ -18,11 +18,11 @@ class HMMPoisson(torch.nn.Module):
         self.verbose = verbose
         
         # A_mat
-        self.transition_matrix = torch.nn.functional.softmax(torch.randn(self.n_states, self.n_states), dim = 0)
+        self.transition_matrix = torch.nn.functional.softmax(torch.rand(self.n_states, self.n_states)*10, dim = 0)
         self.log_transition_matrix = self.transition_matrix.log()
         
         # b(x)
-        self.lambdas = torch.exp(torch.randn(self.n_states, m_dimensions))
+        self.lambdas = torch.exp(torch.rand(self.n_states, m_dimensions)*10)
         self.log_emission_matrix = None
         self.emission_matrix = None
 
